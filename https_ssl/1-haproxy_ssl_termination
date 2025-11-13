@@ -14,7 +14,7 @@ defaults
 
 frontend http_front
     bind *:80
-    bind *:443 ssl crt /etc/letsencrypt/live/www.isheja.tech/fullchain.pem
+    bind *:443 ssl crt /etc/ssl/private/www.isheja.tech.pem
     http-request redirect scheme https unless { ssl_fc }
     default_backend http_back
 

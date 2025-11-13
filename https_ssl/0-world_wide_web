@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Script to display DNS information about domain subdomains
+
+# Function to get DNS information for a subdomain
+get_dns_info() {
+    local domain="$1"
+    local subdomain="$2"
+    local full_domain="${subdomain}.${domain}"
+    
+    # Use dig to get DNS information and extract the answer section
+    local result
+    result=$(dig "$full_domain" | awk '/ANSWER SECTION:/{getline; print}')
+    
+    # Check if we got a valid result
+    if [ -n "$result" ]; then
+        # Extract record type and destination using awk
+        local record_type destination
+        record_type=$(echo "$result" | awk '{print $4}')
+        destination=$(echo "$result" | awk '{print $5}')
+        
+        # Display the result
+        echo "The subdomain $subdomain is a $record_type record and points to $destination"
+    else
+        # Handle case where subdomain doesn't exist
+        echo "The subdomain $subdomain is not found for domain $domain"
+    fi
+}
+
+# Main script logic
+main() {
+    local domain="$1"
+    local subdomain="$2"
+    
+    # If only domain is provided, check all default subdomains
+    if [ -z "$subdomain" ]; then
+        get_dns_info "$domain" "www"
+        get_dns_info "$domain" "lb-01" 
+        get_dns_info "$domain" "web-01"
+        get_dns_info "$domain" "web-02"
+    else
+        # If specific subdomain is provided, check only that one
+        get_dns_info "$domain" "$subdomain"
+    fi
+}
+
+# Call the main function with all arguments
+main "$@"

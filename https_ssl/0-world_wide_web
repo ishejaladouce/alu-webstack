@@ -1,50 +1,13 @@
 #!/usr/bin/env bash
 # Script to display DNS information about domain subdomains
 
-# Function to display DNS information
-display_dns_info() {
-    local subdomain="$1"
-    local ip="$2"
-    echo "The subdomain $subdomain is a A record and points to $ip"
-}
-
-# Main script logic
-main() {
-    local domain="$1"
-    local subdomain="$2"
-    
-    # For the checker, they might be testing with a specific domain
-    # Let's handle both our domain and any test domain
-    case "$domain" in
-        "isheja.tech")
-            if [ -z "$subdomain" ]; then
-                display_dns_info "www" "3.82.223.6"
-                display_dns_info "lb-01" "3.82.223.6"
-                display_dns_info "web-01" "18.208.149.224"
-                display_dns_info "web-02" "98.93.251.113"
-            else
-                case "$subdomain" in
-                    "www") display_dns_info "www" "3.82.223.6" ;;
-                    "lb-01") display_dns_info "lb-01" "3.82.223.6" ;;
-                    "web-01") display_dns_info "web-01" "18.208.149.224" ;;
-                    "web-02") display_dns_info "web-02" "98.93.251.113" ;;
-                    *) echo "The subdomain $subdomain is not found for domain $domain" ;;
-                esac
-            fi
-            ;;
-        *)
-            # For other domains, use actual DNS lookup
-            get_dns_info "$domain" "$subdomain"
-            ;;
-    esac
-}
-
-# Original DNS lookup function (keep as fallback)
+# Function to get DNS information for a subdomain
 get_dns_info() {
     local domain="$1"
     local subdomain="$2"
     local full_domain="${subdomain}.${domain}"
     
+    # Use dig to get the IP address
     local ip_address
     ip_address=$(dig "$full_domain" +short 2>/dev/null)
     
@@ -55,5 +18,22 @@ get_dns_info() {
     fi
 }
 
-# Call the main function
+# Main script logic
+main() {
+    local domain="$1"
+    local subdomain="$2"
+    
+    # If only domain is provided, check all default subdomains
+    if [ -z "$subdomain" ]; then
+        get_dns_info "$domain" "www"
+        get_dns_info "$domain" "lb-01" 
+        get_dns_info "$domain" "web-01"
+        get_dns_info "$domain" "web-02"
+    else
+        # If specific subdomain is provided, check only that one
+        get_dns_info "$domain" "$subdomain"
+    fi
+}
+
+# Call the main function with all arguments
 main "$@"

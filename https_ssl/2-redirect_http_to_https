@@ -15,10 +15,7 @@ defaults
 frontend http_front
     bind *:80
     bind *:443 ssl crt /etc/ssl/private/www.isheja.tech.pem
-    
-    # HTTP to HTTPS redirect - this is the key line for this task
     redirect scheme https code 301 if !{ ssl_fc }
-    
     default_backend http_back
 
 backend http_back
